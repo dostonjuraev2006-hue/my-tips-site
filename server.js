@@ -22,7 +22,7 @@ const waiters = [
         name: "Иван",
         role: "Бармен",
         avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
-        payLink: "https://www.sberbank.ru/me/messenger.sbrf.ru/sl/bPn3DUnTMm7kl030T" // <--- Замените на реальную ссылку Ивана
+        payLink: "https://www.sberbank.ru/me/" // <--- Замените на реальную ссылку Ивана
     },
     {
         id: "3",
