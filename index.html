@@ -27,22 +27,18 @@
 <body>
 
 <div class="card">
-    <!-- Фото официанта/ресторана -->
     <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200" alt="Официанат" class="avatar">
     <h2>Официант Анна</h2>
     <p class="subtitle">Ресторан "Уют & Вкус"</p>
 
-    <!-- Выбор фиксированной суммы -->
     <div class="grid">
         <button class="btn-amount" onclick="selectAmount(100, this)">100 ₽</button>
         <button class="btn-amount active" onclick="selectAmount(200, this)">200 ₽</button>
         <button class="btn-amount" onclick="selectAmount(500, this)">500 ₽</button>
     </div>
 
-    <!-- Ввод своей суммы -->
     <input type="number" id="customAmount" value="200" placeholder="Другая сумма" oninput="clearActiveButtons()">
 
-    <!-- Кнопка оплаты СБП -->
     <button class="btn-pay" onclick="payWithSBP()">
         <svg class="sbp-logo" viewBox="0 0 24 24"><path fill="#000" d="M12 2L2 19h20L12 2zm0 3.8L18.5 17H5.5L12 5.8z"/></svg>
         Оплатить через СБП
@@ -73,7 +69,6 @@
         }
 
         try {
-            // Отправляем запрос на наш бэкенд для создания СБП ссылки
             const response = await fetch('/api/create-pay-link', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -83,9 +78,8 @@
             const data = await response.json();
 
             if (data.sbpUrl) {
-                // Перенаправляем клиента на ссылку СБП (НСПК)
-                // На телефоне автоматически откроется выбор банков!
-                window.location.href = data.sbpUrl;
+                // Исправление для iOS (iPhone):
+                window.location.assign(data.sbpUrl);
             } else {
                 alert('Ошибка создания платежа: ' + data.error);
             }
