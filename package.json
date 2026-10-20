@@ -1,10 +1,16 @@
-{
-    id: "1",
-    name: "Анна",
-    payLink: "https://www.tbank.ru/me/ссылка_анны"
-},
-{
-    id: "2",
-    name: "Иван",
-    payLink: "https://www.sberbank.ru/me/ссылка_ивана"
-}
+[
+    {
+        id: "1",
+        name: "Анна",
+        role: "Официант",
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200",
+        payLink: "https://www.tbank.ru/me/vash_nik_1"
+    },
+    {
+        id: "2",
+        name: "Иван",
+        role: "Бармен",
+        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
+        payLink: "https://www.sberbank.ru/me/vash_nik_2"
+    }
+]
