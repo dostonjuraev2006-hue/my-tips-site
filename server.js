@@ -29,10 +29,14 @@ app.post('/api/create-pay-link', async (req, res) => {
         // --- ДЕМО-РЕЖИМ (ТЕСТ) ---
         // НСПК тест-ссылка (В реальности банк вернет ссылку вида https://qr.nspk.ru/...)
         // Если открыть эту ссылку с телефона, откроется выбор банка!
-        const mockSbpUrl = `https://qr.nspk.ru/BS10006318H288P88G3E000000000000?type=01&bank=100000000004&sum=${amount * 100}&cur=RUB&crc=E898`;
+        // Пример с ЮKassa (псевдокод)
+        const payment = await yookassa.createPayment({
+            amount: { value: amount, currency: "RUB" },
+            payment_method_data: { type: "sbp" } // Запрос ссылки СБП
+        });
 
-        // Возвращаем ссылку фронтенду
-        res.json({ sbpUrl: mockSbpUrl });
+// Банк вернет НАСТОЯЩУЮ ссылку СБП, и она сработает!
+        res.json({ sbpUrl: payment.confirmation.confirmation_url });
 
     } catch (error) {
         console.error("Ошибка банка:", error);
