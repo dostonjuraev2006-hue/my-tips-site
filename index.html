@@ -7,29 +7,31 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: #f4f5f7; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
-        .card { background: #ffffff; border-radius: 24px; padding: 20px; width: 100%; max-width: 420px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: center; }
+        .card { background: #ffffff; border-radius: 24px; padding: 25px 20px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: center; }
         
         h2 { font-size: 20px; color: #1a1a1a; margin-bottom: 5px; }
         p.subtitle { color: #8e8e93; font-size: 14px; margin-bottom: 20px; }
         
-        /* Список официантов */
+        /* Список сотрудников */
         .waiters-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-        .waiter-card { background: #f9f9fb; border: 2px solid transparent; border-radius: 16px; padding: 10px 5px; cursor: pointer; transition: all 0.2s; }
+        .waiter-card { background: #f9f9fb; border: 2px solid transparent; border-radius: 16px; padding: 12px 5px; cursor: pointer; transition: all 0.2s; }
         .waiter-card.active { border-color: #007aff; background: #f0f6ff; }
-        .waiter-avatar { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; margin-bottom: 6px; }
+        .waiter-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin-bottom: 8px; border: 2px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .waiter-name { font-size: 14px; font-weight: 600; color: #1c1c1e; }
-        .waiter-role { font-size: 11px; color: #8e8e93; }
+        .waiter-role { font-size: 11px; color: #8e8e93; margin-top: 2px; }
 
         /* Выбор суммы */
         .grid-amounts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
-        .btn-amount { background: #f0f2f5; border: 2px solid transparent; border-radius: 12px; padding: 12px 0; font-size: 16px; font-weight: 600; color: #333; cursor: pointer; }
+        .btn-amount { background: #f0f2f5; border: 2px solid transparent; border-radius: 12px; padding: 12px 0; font-size: 16px; font-weight: 600; color: #333; cursor: pointer; transition: all 0.2s; }
         .btn-amount.active { border-color: #007aff; background: #eaf2ff; color: #007aff; }
         
         input[type="number"] { width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 12px; font-size: 16px; text-align: center; margin-bottom: 20px; outline: none; }
+        input[type="number"]:focus { border-color: #007aff; }
         
         /* Кнопка оплаты */
-        .btn-pay { width: 100%; background: #000; color: #fff; border: none; border-radius: 16px; padding: 16px; font-size: 17px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-pay:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-pay { width: 100%; background: #000; color: #fff; border: none; border-radius: 16px; padding: 16px; font-size: 17px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: opacity 0.2s; }
+        .btn-pay:active { opacity: 0.8; }
+        .sbp-logo { width: 22px; height: 22px; }
     </style>
 </head>
 <body>
@@ -38,9 +40,9 @@
     <h2>Кому оставить чаевые?</h2>
     <p class="subtitle">Выберите сотрудника и сумму</p>
 
-    <!-- Сетка сотрудников -->
+    <!-- Список сотрудников загрузится сюда автоматически -->
     <div class="waiters-grid" id="waitersList">
-        <p style="grid-column: span 3;">Загрузка сотрудников...</p>
+        <p style="grid-column: span 3; color: #999;">Загрузка...</p>
     </div>
 
     <!-- Выбор суммы -->
@@ -53,8 +55,9 @@
     <input type="number" id="customAmount" value="200" placeholder="Другая сумма" oninput="clearActiveButtons()">
 
     <!-- Кнопка оплаты -->
-    <button class="btn-pay" id="payBtn" onclick="payWithSBP()">
-        Оплатить через СБП
+    <button class="btn-pay" onclick="payWithSBP()">
+        <svg class="sbp-logo" viewBox="0 0 24 24"><path fill="#fff" d="M12 2L2 19h20L12 2zm0 3.8L18.5 17H5.5L12 5.8z"/></svg>
+        Перейти к оплате
     </button>
 </div>
 
@@ -62,7 +65,7 @@
     let selectedWaiterId = null;
     let currentAmount = 200;
 
-    // 1. Загружаем сотрудников с сервера
+    // Загружаем список сотрудников с сервера
     async function loadWaiters() {
         try {
             const res = await fetch('/api/waiters');
@@ -71,21 +74,28 @@
             const listEl = document.getElementById('waitersList');
             listEl.innerHTML = '';
 
+            if (!waiters || waiters.length === 0) {
+                listEl.innerHTML = '<p style="grid-column: span 3;">Сотрудники не найдены</p>';
+                return;
+            }
+
             waiters.forEach((w, index) => {
                 const card = document.createElement('div');
+                // Выбираем первого сотрудника по умолчанию
                 card.className = `waiter-card ${index === 0 ? 'active' : ''}`;
-                if(index === 0) selectedWaiterId = w.id; // По умолчанию выбираем первого
+                if (index === 0) selectedWaiterId = w.id;
 
                 card.onclick = () => selectWaiter(w.id, card);
                 card.innerHTML = `
-                    <img src="${w.avatar}" class="waiter-avatar">
+                    <img src="${w.avatar}" class="waiter-avatar" alt="${w.name}">
                     <div class="waiter-name">${w.name}</div>
                     <div class="waiter-role">${w.role}</div>
                 `;
                 listEl.appendChild(card);
             });
         } catch (e) {
-            alert('Ошибка загрузки сотрудников');
+            console.error(e);
+            document.getElementById('waitersList').innerHTML = '<p style="grid-column: span 3; color: red;">Ошибка загрузки</p>';
         }
     }
 
@@ -107,7 +117,7 @@
         currentAmount = document.getElementById('customAmount').value;
     }
 
-    // 2. Оплата СБП
+    // Переход к оплате
     async function payWithSBP() {
         if (!selectedWaiterId) {
             alert('Пожалуйста, выберите сотрудника');
@@ -116,7 +126,7 @@
 
         const amount = document.getElementById('customAmount').value;
         if (!amount || amount <= 0) {
-            alert('Введите сумму');
+            alert('Введите корректную сумму');
             return;
         }
 
@@ -130,17 +140,18 @@
             const data = await response.json();
 
             if (data.sbpUrl) {
-                // Прямой переход для iPhone и Android в банк
+                // Переходим по вашей ссылке Сбербанка/Т-Банка
                 window.location.assign(data.sbpUrl);
             } else {
-                alert('Ошибка: ' + data.error);
+                alert('Ошибка: ' + (data.error || 'Не удалось получить ссылку'));
             }
         } catch (err) {
-            alert('Ошибка при отправке запроса');
+            alert('Ошибка сервера. Проверьте подключение к интернету.');
+            console.error(err);
         }
     }
 
-    // Запускаем при загрузке страницы
+    // Запускаем при открытии страницы
     loadWaiters();
 </script>
 
